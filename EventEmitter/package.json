@@ -1,0 +1,34 @@
+{
+  "name": "eventemitter",
+  "version": "1.0.0",
+  "description": "Event based JavaScript for the browser",
+  "main": "EventEmitter.js",
+  "scripts": {
+    "test": "mocha --compilers js:babel-core/register"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eplover/wheels.git"
+  },
+  "keywords": [
+    "eventemitter",
+    "events",
+    "browser",
+    "amd"
+  ],
+  "author": "eplover",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eplover/wheels/issues"
+  },
+  "homepage": "https://github.com/eplover/wheels#readme",
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "chai": "^4.1.2",
+    "mocha": "^3.5.3"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.26.0"
+  }
+}
