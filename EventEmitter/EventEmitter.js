@@ -1,100 +1,109 @@
-const EventEmitter = () => {};
-const proto = EventEmitter.prototype;
-const indexOfListener = (listeners, listener) => {
-    let i = listeners.length;
+class EventEmitter {
+    constructor() {
+        this.events = {};
+    }
 
-    while (i--) {
-        if (listeners[i].listener === listener) {
-            return i;
+    static indexOfListener(listeners, listener) {
+        let i = listeners.length;
+        listener = typeof listener === 'object' ? listener.listener : listener;
+        while (i--) {
+            if (listeners[i].listener === listener) {
+                return i;
+            }
+            else ()
+        }
+        return -1;
+    }
+
+    static isValidListener(listener) {
+        if (typeof listener === 'function') {
+            return true;
+        }
+        else if (typeof listener === 'object') {
+            return isValidListener(listener.listener);
+        }
+        else {
+            return false;
         }
     }
 
-    return -1;
-};
-
-proto._getEvents = function () {
-    this._events = this._events || {};
-    return this._events;
-};
-
-proto.getListeners = function (evt) {
-    const evts = this._getEvents();
-    evts[evt] = evts[evt] || [];
-    return evts[evt];
-};
-
-function isValidListener(listener) {
-    return typeof listener === 'function';
-};
-
-proto.addEventListener = function (evt, listener) {
-    if (!isValidListener(listener)) {
-        throw new TypeError('事件监听器类型错误。');
+    getListeners(evt) {
+        let events = this.events;
+        let listeners;
+        if (evt instanceof RegExp) {
+            // TODO
+        }
+        else {
+            listeners = events[evt] || (events[evt] = [])
+        }
+        return listeners;
     }
-    const listeners = this.getListeners(evt);
-    const index = indexOfListener(listeners, listener);
-    if (index === -1) {
-        listeners.push({
-            listener: listener,
-            once: false
-        });
-        return true;
-    }
-    return false;
-};
 
-proto.addOnceEventListener = function (evt, listener) {
-    if (!isValidListener(listener)) {
-        throw new TypeError('事件监听器类型错误。');
+    addListener(evt, listener) {
+        if (!EventEmitter.isValidListener(listener)) {
+            throw new TypeError('listener 必须是一个函数');
+        }
+        const listeners = this.getListeners(evt);
+        const listenerIsWrapped = typeof listener === 'object';
+        if (EventEmitter.indexOfListener(listeners, listener) === -1) {
+            listenerAsObject = listener.listener;
+            listeners.push(listenerIsWrapped ? listener : {
+                listener: listener,
+                once: false
+            });
+        }
+        return this;
     }
-    const listeners = this.getListeners(evt);
-    const index = indexOfListener(listeners, listener);
-    if (index === -1) {
-        listeners.push({
+
+    addOnceListener(evt, listener) {
+        this.addListener(evt, {
             listener: listener,
             once: true
         });
-        return true;
     }
-    return false;
-};
 
-proto.removeEventListener = (evt, listener) => {
-    const listeners = this.getListeners(evt);
-    if (isValidListener(listener)) {
-        for (let i = 0; i < listeners.length; i++) {
-            if (listeners[i].listener === listener) {
-                return listeners.splice(i, 1);
+    removeListener(evt, listener) {
+        let listeners = this.getListeners(evt);
+        listener = typeof listener === 'object' ? listener.listener : listener;
+        if (!listener) {
+            this.events[evt] = listeners.splice(0, listeners.length);
+        }
+        else if (EventEmitter.indexOfListener(listener) !== -1) {
+            for (let i = 0; i < listeners.length; i++) {
+                if (listeners[i].listener === listener) {
+                    return listeners.splice(i, 1);
+                }
             }
         }
     }
-    else if (typeof listener === undefined) {
-        const evts = this._getEvents(evt);
-        evts[evt] = [];
-    }
-};
 
-proto.emitEvent = function (evt) {
-    const listeners = this.getListeners(evt);
-    for (let i = 0; i < listeners.length; i++) {
-        const listener = listeners[i];
-        listener.listener();
-        if (listener.once) {
-            listeners.splice(i, 1);
+    emitEvent(evt) {
+        const listeners = this.getListeners(evt);
+        for (let i = 0; i < listeners.length; i++) {
+            const listener = listeners[i];
+            listener.listener();
+            if (listener.once) {
+                this.removeListener(evt, listener.listener);
+            }
         }
     }
-};
 
+    on() {
+        this.addListener(...arguments);
+    }
 
-function alias(name) {
-    return function () {
-        return this[name].apply(this, arguments);
-    };
+    once() {
+        this.addOnceListener(...arguments);
+    }
+
+    off() {
+        this.removeListener(...arguments);
+    }
+
+    emit() {
+        this.emitEvent(...arguments);
+    }
+
 }
-
-proto.on = alias('addEventListener');
-proto.once = alias('addOnceEventListener');
-proto.off = alias('removeEventListener');
-proto.emit = alias('emitEvent');
 
 export default EventEmitter;

@@ -2,56 +2,158 @@ import 'babel-polyfill';
 import EventEmitter from '../EventEmitter.js';
 import chai from 'chai';
 
-const ee = new EventEmitter();
 const expect = chai.expect;
 
-describe('_getEvents方法测试', function() {
-    it('应该返回一个对象', function() {
-        expect(ee._getEvents()).to.be.an('object');
+describe('events', function() {
+    const ee = new EventEmitter();
+    it('应该返回一个空对象', function() {
+        expect(ee.events).to.be.an('object');
     });
 });
 
-// describe('getListeners方法测试', function() {
-//     it('应该返回一个数组', function() {
-//         expect(ee.getListeners()).to.be.an('array');
-//     });
-// });
-
-// describe('isValidListener', function() {
-//     it('isValidListener(function () {})应该返回true', function() {
-//         expect(ee.isValidListener(function () {})).to.be.true;
-//     });
-//     it('isValidListener(undefined)应该返回false', function() {
-//         expect(ee.isValidListener(undefined)).to.be.false;
-//     });
-// });
-
-describe('addEventListener方法测试', function() {
-    const l = () => {};
-    ee.addEventListener('click', l);
-    describe('_getEvents方法测试', function() {
-        it('应该返回一个事件集对象', function() {
+describe('on(\'click\', listener)', function() {
+    const ee = new EventEmitter();
+    const listener = () => {};
+    ee.on('click', listener);
+    describe('on 后执行 events', function() {
+        it('应该返回: {click: [{ listener: [Function], once: false }]}', function() {
             const result = {
                 click: [{
-                    listener: l,
+                    listener: listener,
                     once: false
                 }]
             };
-            console.log(result);
-            console.log(ee._getEvents());
-            expect(ee._getEvents()).to.deep.equal(result);
+            expect(ee.events).to.deep.equal(result);
         });
     });
-    describe('getListeners方法测试', function() {
-        it('应该返回一个click事件对象', function() {
+    describe('on 后执行 getListeners(\'click\')', function() {
+        it('应该返回: [{ listener: [Function], once: false }]', function() {
             expect(ee.getListeners('click')).to.deep.equal([{
-                listener: l,
+                listener: listener,
                 once: false
             }]);
         });
-        it('应该返回一个空数组', function() {
-            expect(ee.getListeners()).to.be.an('array');
+    });
+});
+
+
+describe('once(\'click\', listener)', function() {
+    const ee = new EventEmitter();
+    const listener = () => {};
+    ee.once('click', listener);
+    describe('once 后执行 events', function() {
+        it('应该返回：{ click: [{ listener: [Function], once: true }] }', function() {
+            const result = {
+                click: [{
+                    listener: listener,
+                    once: true
+                }]
+            };
+            expect(ee.events).to.deep.equal(result);
+        });
+    });
+    describe('once 后执行 getListeners(\'click\')', function() {
+        it('应该返回：[{ listener: [Function], once: true }]', function() {
+            expect(ee.getListeners('click')).to.deep.equal([{
+                listener: listener,
+                once: true
+            }]);
+        });
+    });
+});
+
+
+describe('off(\'click\', listener)', function() {
+    const ee = new EventEmitter();
+    const listener = () => {};
+    ee.on('click', listener);
+    ee.off('click', listener);
+    describe('off 后执行 events', function() {
+        it('应该返回：{ click: [] }', function() {
+            const result = {
+                click: []
+            };
+            expect(ee.events).to.deep.equal(result);
+        });
+    });
+    describe('off 后执行 getListeners(\'click\')', function() {
+        it('应该返回：[]', function() {
+            expect(ee.getListeners('click')).to.deep.equal([]);
+        });
+    });
+});
+
+describe('off(\'click\')', function() {
+    const ee = new EventEmitter();
+    const listener = () => {};
+    ee.on('click', listener);
+    ee.off('click');
+
+    describe('off 后执行 events', function() {
+        it('应该返回：{}', function() {
+            expect(ee.events).to.deep.equal({});
+        });
+    });
+    describe('off 后执行 getListeners(\'click\')', function() {
+        it('应该返回：[]', function() {
+            expect(ee.getListeners('click')).to.deep.equal([]);
+        });
+    });
+});
+
+describe('emit(\'click\')', function() {
+    const ee = new EventEmitter();
+    const listener = () => {};
+    ee.on('click', listener);
+
+    describe('emit(\'click\') 前执行 events', function() {
+        it('应该返回：{ click: [{ listener: [Function], once: false }] }', function() {
+            expect(ee.events).to.deep.equal({
+                click: [{
+                    listener: listener,
+                    once: false
+                }]
+            });
         });
     });
 
+    ee.emit('click');
+
+    describe('emit(\'click\') 后执行 events', function() {
+        it('应该返回：{ click: [{ listener: [Function], once: false }] }', function() {
+            expect(ee.events).to.deep.equal({
+                click: [{
+                    listener: listener,
+                    once: false
+                }]
+            });
+        });
+    });
+});
+
+describe('emit(\'clickOnce\')', function() {
+    const ee = new EventEmitter();
+    const listener = () => {};
+    ee.once('clickOnce', listener);
+
+    describe('emit(\'clickOnce\') 前执行 events', function() {
+        it('应该返回：{ clickOnce: [{ listener: [Function], once: true }] }', function() {
+            expect(ee.events).to.deep.equal({
+                clickOnce: [{
+                    listener: listener,
+                    once: true
+                }]
+            });
+            ee.emit('clickOnce');
+        });
+    });
+
+    describe('emit(\'clickOnce\') 后执行 events', function() {
+        it('应该返回：{ clickOnce: [] }', function() {
+            ee.emit('clickOnce');
+            expect(ee.events).to.deep.equal({
+                clickOnce: []
+            });
+        });
+    });
 });

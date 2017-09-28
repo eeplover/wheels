@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>EventEmitter.js browser test</title>
+    </head>
+    <body>
+        <script type="text/javascript">
+            function line(section = '') {
+                console.log(`\n######################${section}#######################`);
+            }
+        </script>
+        <script type="module">
+            import EventEmitter from '../EventEmitter.js';
+
+            line('on');
+            const ee = new EventEmitter();
+
+            console.log('// ee.on(\'click\', listener)');
+            ee.on('click', function () {
+                console.log('you clicked');
+            });
+            console.log('ee.events return:\n', ee.events);
+            console.log('ee.getListeners(\'click\') return:\n', ee.getListeners('click'));
+            console.log(`// ee.emit('click')`);
+            ee.emit('click');
+
+            line('once');
+            const ee1 = new EventEmitter();
+
+            console.log(`// ee1.once('click', listener)`);
+            ee1.once('click', function () {
+                console.log('you already click');
+            });
+            console.log('ee1.events return:\n', ee1.events);
+            console.log('ee1.getListeners(\'click\') return:\n', ee1.getListeners('click'));
+            console.log(`// ee1.emit('click')`);
+            ee1.emit('click');
+
+            line('off');
+            const ee2 = new EventEmitter();
+
+            console.log('// ee2.on(\'click\', listener)');
+            ee2.on('click', function () {
+                console.log('you clicked');
+            });
+            console.log('ee2.events return:\n', ee2.events);
+            console.log('ee2.getListeners(\'click\') return:\n', ee2.getListeners('click'));
+            console.log('// ee2.off(\'click\')');
+            ee2.off('click');
+
+            line('emit');
+            const ee3 = new EventEmitter();
+
+            console.log(`// ee3.once('click', listener)`);
+            ee3.once('click', function () {
+                console.log('you already click');
+            });
+            console.log('ee3.events return:\n\n', ee3.events);
+            console.log('ee3.getListeners(\'click\') return:\n\n', ee3.getListeners('click'));
+            console.log(`// ee3.emit('click')`);
+            ee3.emit('click');
+
+        </script>
+    </body>
+</html>
