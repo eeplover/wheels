@@ -90,8 +90,8 @@ describe('off(\'click\')', function() {
     ee.off('click');
 
     describe('off 后执行 events', function() {
-        it('应该返回：{}', function() {
-            expect(ee.events).to.deep.equal({});
+        it('应该返回：{ click: [] }', function() {
+            expect(ee.events).to.deep.equal({click: []});
         });
     });
     describe('off 后执行 getListeners(\'click\')', function() {
@@ -153,6 +153,82 @@ describe('emit(\'clickOnce\')', function() {
             ee.emit('clickOnce');
             expect(ee.events).to.deep.equal({
                 clickOnce: []
+            });
+        });
+    });
+});
+
+describe(`addListeners('click, [listener1, listener2]')`, function () {
+    const ee = new EventEmitter();
+    const listener1 = () => {};
+    const listener2 = () => {};
+    ee.addListeners('click', [listener1, listener2]);
+    it('应该返回：{ click: [{ listener: listener2, once: false }, { listener: listener1, once: false }] }', function () {
+        expect(ee.events).to.deep.equal({
+            click: [
+                {
+                    listener: listener2,
+                    once: false
+                },
+                {
+                    listener: listener1,
+                    once: false
+                }
+            ]
+        });
+    });
+});
+
+describe(`removeListeners('click, [listener2]')`, function () {
+    const ee = new EventEmitter();
+    const listener1 = () => {};
+    const listener2 = () => {};
+    ee.addListeners('click', [listener1, listener2]);
+    ee.removeListeners('click', [listener1]);
+    it('应该返回：{ click: [{ listener: listener2, once: false }] }', function () {
+        expect(ee.events).to.deep.equal({
+            click: [
+                {
+                    listener: listener2,
+                    once: false
+                }
+            ]
+        });
+    });
+});
+
+describe(`manipulateListeners`, function () {
+    describe(`manipulateListeners(false, { 'click': [listener1, listener2] })`, function () {
+        const ee = new EventEmitter();
+        const listener1 = () => {};
+        const listener2 = () => {};
+        ee.manipulateListeners(false, { click: [listener1, listener2] });
+
+        it(`应该返回：{ click: [{ listener: listener2, once: false }, { listener: listener1, once: false }] }`, function () {
+            expect(ee.events).to.deep.equal({
+                click: [
+                    {
+                        listener: listener2,
+                        once: false
+                    },
+                    {
+                        listener: listener1,
+                        once: false
+                    }
+                ]
+            });
+        });
+    });
+    describe(`manipulateListeners(true, { 'click': [listener1] })`, function () {
+        const ee = new EventEmitter();
+        const listener1 = () => {};
+        const listener2 = () => {};
+        ee.manipulateListeners(false, { click: [listener1, listener2] });
+        ee.manipulateListeners(true, { click: [listener1, listener2] });
+
+        it(`应该返回：{ click: [] }`, function () {
+            expect(ee.events).to.deep.equal({
+                click: []
             });
         });
     });

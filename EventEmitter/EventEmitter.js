@@ -10,7 +10,6 @@ class EventEmitter {
             if (listeners[i].listener === listener) {
                 return i;
             }
-            else ()
         }
         return -1;
     }
@@ -20,7 +19,7 @@ class EventEmitter {
             return true;
         }
         else if (typeof listener === 'object') {
-            return isValidListener(listener.listener);
+            return EventEmitter.isValidListener(listener.listener);
         }
         else {
             return false;
@@ -46,7 +45,7 @@ class EventEmitter {
         const listeners = this.getListeners(evt);
         const listenerIsWrapped = typeof listener === 'object';
         if (EventEmitter.indexOfListener(listeners, listener) === -1) {
-            listenerAsObject = listener.listener;
+            // listenerAsObject = listener.listener;
             listeners.push(listenerIsWrapped ? listener : {
                 listener: listener,
                 once: false
@@ -56,7 +55,7 @@ class EventEmitter {
     }
 
     addOnceListener(evt, listener) {
-        this.addListener(evt, {
+        return this.addListener(evt, {
             listener: listener,
             once: true
         });
@@ -64,44 +63,80 @@ class EventEmitter {
 
     removeListener(evt, listener) {
         let listeners = this.getListeners(evt);
-        listener = typeof listener === 'object' ? listener.listener : listener;
         if (!listener) {
-            this.events[evt] = listeners.splice(0, listeners.length);
+            listeners.length = 0;
         }
-        else if (EventEmitter.indexOfListener(listener) !== -1) {
+        else if (EventEmitter.indexOfListener(listeners, listener) !== -1) {
             for (let i = 0; i < listeners.length; i++) {
                 if (listeners[i].listener === listener) {
                     return listeners.splice(i, 1);
                 }
             }
         }
+        return this;
     }
 
-    emitEvent(evt) {
+    addListeners(evt, listeners) {
+        return this.manipulateListeners(false, evt, listeners);
+    }
+
+    removeListeners(evt, listeners) {
+        return this.manipulateListeners(true, evt, listeners);
+    }
+
+    manipulateListeners(remove, evt, listeners) {
+        let i;
+        let value;
+        let single = remove ? this.removeListener : this.addListener;
+        let multiple = remove ? this.removeListeners : this.addListeners;
+        if (typeof evt === 'object') {
+            for (i in evt) {
+                if (evt.hasOwnProperty(i) && (value = evt[i])) {
+                    if (Array.isArray(value)) {
+                        multiple.call(this, i, value);
+                    }
+                    else {
+                        single.call(this, i, value);
+                    }
+                }
+            }
+        }
+        else {
+            i = listeners.length;
+            while (i--) {
+                single.call(this, evt, listeners[i]);
+            }
+        }
+        return this;
+    }
+
+    emitEvent(evt, ...args) {
         const listeners = this.getListeners(evt);
+        // const args = [].slice.call(arguments, 1);
         for (let i = 0; i < listeners.length; i++) {
             const listener = listeners[i];
-            listener.listener();
             if (listener.once) {
                 this.removeListener(evt, listener.listener);
             }
+            listener.listener(...args.slice(1));
         }
+        return this;
     }
 
-    on() {
-        this.addListener(...arguments);
+    on(...args) {
+        return this.addListener(...args);
     }
 
-    once() {
-        this.addOnceListener(...arguments);
+    once(...args) {
+        return this.addOnceListener(...args);
     }
 
-    off() {
-        this.removeListener(...arguments);
+    off(...args) {
+        return this.removeListener(...args);
     }
 
-    emit() {
-        this.emitEvent(...arguments);
+    emit(...args) {
+        return this.emitEvent(...args);
     }
 
 }
